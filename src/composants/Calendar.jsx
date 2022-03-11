@@ -1,5 +1,6 @@
+import React from "react";
 import { useState } from "react";
-import moment from 'moment'
+import moment from "moment";
 
 function getFrMonthStr(monthNumber) {
     switch (monthNumber) {
@@ -18,35 +19,22 @@ function getFrMonthStr(monthNumber) {
     }
 }
 
-export const Calendar = () => {
-
-    
+export function Calendar() {
     const today = new Date();
-    const todayFR = today.toLocaleDateString();
+    // const todayFR = today.toLocaleDateString();
 
-    // const todayMonth = today.getMonth() + 1;
     const [todayMonth, setTodayMonth] = useState(today.getMonth() + 1);
     const [todayYear, setTodayYear] = useState(today.getFullYear());
 
-    // console.log(todayFR);
+    // const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    // const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    // const lastDayLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
 
-    const lastDayLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+    // const firstDayFR = firstDay.toLocaleDateString();
+    // const lastDayFR = lastDay.toLocaleDateString();
 
-    const firstDayFR = firstDay.toLocaleDateString();
-    const lastDayFR = lastDay.toLocaleDateString();
-
-    const lastDayLastMonthFR = lastDayLastMonth.toLocaleDateString();
-    
-    // console.log(firstDayFR, lastDayFR);
-
-    // console.log(lastDayLastMonth);
-
-    // console.log(today.getDay()); // entre 0 et 6 => 0 = Dimanche  
-
-    // console.log(todayMonth);
+    // const lastDayLastMonthFR = lastDayLastMonth.toLocaleDateString();
 
     function prevMonth() {
         setTodayMonth(todayMonth - 1);
@@ -66,37 +54,104 @@ export const Calendar = () => {
         setTodayYear(todayYear + 1);
     }
 
-    // console.log(firstDay.getDay()); // le jour de la première date du mois
-    
-    return <>
-        <table>
-            <thead>
-                <tr>
-                    <th className="link-primary" style={{ cursor : "pointer" }} onClick={prevMonth}>&lt;&lt;</th>
-                    <th colSpan="5" className="text-center">{ getFrMonthStr(todayMonth) }</th>
-                    <th className="link-primary" style={{ cursor : "pointer" }} onClick={nextMonth}>&gt;&gt;</th>
-                </tr>
-            </thead>
+    const [state, setState] = useState({
+        momentFunc: moment()
+    });
 
-            <thead>
-                <tr>
-                    <th className="link-primary" style={{ cursor : "pointer" }} onClick={prevYear}>&lt;&lt;</th>
-                    <th colSpan="5" className="text-center">{ todayYear }</th>
-                    <th className="link-primary" style={{ cursor : "pointer" }} onClick={nextYear}>&gt;&gt;</th>
-                </tr>
-            </thead>
+    const daysInMonthFunc = () => {
+        return state.momentFunc.daysInMonth();
+    };
 
-            <thead>
-                <tr>
-                    <th>Lu</th>
-                    <th>Ma</th>
-                    <th>Me</th>
-                    <th>Je</th>
-                    <th>Ve</th>
-                    <th>Sa</th>
-                    <th>Di</th>
-                </tr>
-            </thead>
-        </table>
-    </>
+    const currentDayFunc = () => {
+        return state.momentFunc.format("D");
+    };
+
+    const firstDayOfMonth = () => {
+        let momentFunc = state.momentFunc;
+        let firstDay = moment(momentFunc)
+        .startOf("month")
+        .format("d"); // Day of week 0...1..5...6
+        return firstDay;
+    };
+
+    function render() {
+        let jous_vide = [];
+        let jours = [];
+        
+        for (let i = 0; i < firstDayOfMonth(); i++) {
+            jous_vide.push(<td className="">{""}</td>);
+        }
+        for (let d = 1; d <= daysInMonthFunc(); d++) {
+            let currentDay = d == currentDayFunc() ? "today" : "";
+            jours.push(
+                <td key={d} className={`jour ${currentDay}`}>
+                <span>
+                    {d}
+                </span>
+                </td>
+            );
+        }
+        
+        var totalSlots = [...jous_vide, ...jours];
+        let rows = [];
+        let cells = [];
+
+        totalSlots.forEach((row, i) => {
+        if (i % 7 !== 0) {
+            cells.push(row);
+        } else {
+            rows.push(cells);
+            cells = [];
+            cells.push(row);
+        }
+        if (i === totalSlots.length - 1) {
+            // let insertRow = cells.slice();
+            rows.push(cells);
+        }
+        });
+
+        let daysinmonth = rows.map((d, i) => {
+            return <tr>{d}</tr>;
+        });
+
+        return (
+            <div className="tail-datetime-calendar">
+                <table>
+                    <thead>
+                        <tr>
+                            <th className="link-primary" style={{ cursor : "pointer" }} onClick={prevMonth}>&lt;&lt;</th>
+                            <th colSpan="5" className="text-center">{ getFrMonthStr(todayMonth) }</th>
+                            <th className="link-primary" style={{ cursor : "pointer" }} onClick={nextMonth}>&gt;&gt;</th>
+                        </tr>
+                    </thead>
+
+                    <thead>
+                        <tr>
+                            <th className="link-primary" style={{ cursor : "pointer" }} onClick={prevYear}>&lt;&lt;</th>
+                            <th colSpan="5" className="text-center">{ todayYear }</th>
+                            <th className="link-primary" style={{ cursor : "pointer" }} onClick={nextYear}>&gt;&gt;</th>
+                        </tr>
+                    </thead>
+
+                    <thead>
+                        <tr>
+                            <th>Lu</th>
+                            <th>Ma</th>
+                            <th>Me</th>
+                            <th>Je</th>
+                            <th>Ve</th>
+                            <th>Sa</th>
+                            <th>Di</th>
+                        </tr>
+                    </thead>
+                
+                    <tbody>{daysinmonth}</tbody>
+                </table>
+            </div>
+        );
+    }
+
+  return <>
+    {render()}
+  </>
 }
